@@ -23,25 +23,25 @@ A decentralized multi-robot simulation for dynamic task assignment in ROS 2 (Hum
 
 ## Core Features (核心功能)
 
-**動態任務分配**  
-使用者可在 OpenCV 視窗內任意點擊新增任務。
+1.**動態任務分配**  
+- 使用者可在 OpenCV 視窗內任意點擊新增任務。
 
-**最佳化指派（Hungarian Algorithm）**  
-Leader agent 使用 `scipy.optimize.linear_sum_assignment` 進行最小成本最佳分配。
+2.**最佳化指派（Hungarian Algorithm）**  
+- Leader agent 使用 `scipy.optimize.linear_sum_assignment` 進行最小成本最佳分配。
 
-**分離式架構**  
+3.**分離式架構**  
 - simulation_node — 中央視覺化 + 模擬伺服器  
 - robot_agent — 分散式智慧體，每台機器人都獨立運算
 
-**多種規劃器**  
-A*, RRT, RRT*
+4.**多種規劃器**  
+- A*, RRT, RRT*
 
-**多種控制器**  
-PID, LQR, Stanley (Bicycle Model), Pure Pursuit
+5.**多種控制器**  
+- PID, LQR, Stanley (Bicycle Model), Pure Pursuit
 
-**Arduino 硬體回饋**  
-LED → 顯示「剩餘 task 數量」  
-馬達 → robot 有在動就轉動
+6.**Arduino 硬體回饋**  
+- LED → 顯示「剩餘 task 數量」  
+- 馬達 → robot 有在動就跟著轉動
 
 ---
 
@@ -63,7 +63,7 @@ LED → 顯示「剩餘 task 數量」
 
 ---
 
-## Directory Tree (專案目錄結構)
+## Directory Tree (專案包裹結構)
 ```
 ros2_multi_robot_task_sim/src
 │
@@ -183,7 +183,7 @@ source install/setup.bash
 
 **2. 執行模擬**
 
-開啟至少 3 個終端機。
+開啟多個終端機。
 
 ```bash
 # 終端機 1: 啟動Simulation Node 模擬器 (顯示介面)
