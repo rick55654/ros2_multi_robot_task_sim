@@ -64,3 +64,35 @@ colcon build --packages-select multi_robot_sim
 
 # 5. Source 環境
 source install/setup.bash
+```
+**2. 執行模擬**
+
+您需要開啟至少 3 個終端機。
+
+```bash
+# 終端機 1: 啟動模擬器 (世界/伺服器)
+source ~/ros2_ws/install/setup.bash
+ros2 run multi_robot_sim simulation_node
+```
+```bash
+
+# 終端機 2: 啟動機器人 1 (大腦)
+source ~/ros2_ws/install/setup.bash
+ros2 launch multi_robot_sim robot1_launch.py
+```
+```bash
+
+# 終端機 3: 啟動機器人 2 (大腦)
+source ~/ros2_ws/install/setup.bash
+ros2 launch multi_robot_sim robot2_launch.py
+```
+**3. 使用方式**
+1. 啟動所有節點後，一個名為 "ROS 2 Multi-Robot Simulation" 的 OpenCV 視窗將會出現。
+
+2. 在視窗的白色可通行區域內點擊滑鼠左鍵。
+
+3. 每次點擊都會在 `/task_list `中新增一個任務。
+
+4. Leader 智能體將自動計算最佳分配，並派遣閒置的機器人前往執行。
+
+5. (可選) 連接 Arduino，LED 燈將顯示待處理任務的數量。
