@@ -8,32 +8,149 @@ A decentralized multi-robot simulation for dynamic task assignment in ROS 2 (Hum
 
 ---
 
-## 核心功能
+## Demo Preview (示範成果)
 
-* **動態任務分配：** 使用者可以隨時在 OpenCV 視窗中點擊以新增任務。
-* **最佳化指派：** Leader 智能體 (Agent) 使用 `scipy.optimize.linear_sum_assignment` (匈牙利演算法) 來計算最佳的「機器人-任務」指派。
-* **分離式架構：**
-    * `simulation_node` (顯示介面) 負責物理模擬和視覺化。
-    * `robot_agent` (機器人) 負責路徑規劃成本計算和任務決策。
-* **多種規劃器：** 支援多種路徑規劃演算法 (A*, RRT, RRT*)。
-* **多種控制器：** 支援多種控制演算法 (PID, LQR, Stanley, Pure Pursuit)。
-* **硬體整合：** (可選) 透過序列埠 (`pyserial`) 與 Arduino 連接，以實體 LED 燈號和馬達震動來回饋模擬狀態（任務數量、機器人活動）。
+**Demo Gif:**
 
-## 系統架構
+![Demo Preview](docs/demo.gif)
 
-本專案採用「中央化界面顯示」與「分離式模擬」架構。
+- OpenCV 介面可動態新增任務
+- 多台 robot_agent 自動競標並分配目標
+- 軌跡平滑、路徑規劃與控制器皆可切換
+- Arduino LED 顯示任務量、馬達隨機動作反映「是否有 robot 正在執行任務」
 
-1.  **`simulation_node` (顯示介面)**
-    * 作為單一節點啟動，是所有資訊的來源。
-    * 管理 `Robot` 物件（物理實體）並執行路徑追蹤。
-    * 發布 `/task_list` (所有待處理任務) 和 `/<robot_name>/pose` (每個機器人的真實姿態)。
-    * 訂閱 `/assign_goal` (來自 Leader 的指令) 並將其傳達給對應的 `Robot` 物件。
+---
 
-2.  **`robot_agent` (機器人)**
-    * 系統中的**每個**機器人都需要啟動**一個** `robot_agent` 節點。
-    * **所有**機器人都會訂閱 `/task_list` 和自己的 `/pose`。
-    * **所有**機器人都會獨立計算自己到**所有**任務的成本，並將其發布到 `/agent_reports`。
-    * **僅有 Leader** (ID 最小的 `robot_agent`) 會訂閱 `/agent_reports`，建立成本矩陣，運行匈牙利演算法，並將指派結果發布到 `/assign_goal`。
+## Core Features (核心功能)
+
+**動態任務分配**  
+使用者可在 OpenCV 視窗內任意點擊新增任務。
+
+**最佳化指派（Hungarian Algorithm）**  
+Leader agent 使用 `scipy.optimize.linear_sum_assignment` 進行最小成本最佳分配。
+
+**分離式架構**  
+- simulation_node — 中央視覺化 + 模擬伺服器  
+- robot_agent — 分散式智慧體，每台機器人都獨立運算
+
+**多種規劃器**  
+A*, RRT, RRT*
+
+**多種控制器**  
+PID, LQR, Stanley (Bicycle Model), Pure Pursuit
+
+**Arduino 硬體回饋**  
+LED → 顯示「剩餘 task 數量」  
+馬達 → robot 有在動就轉動
+
+---
+
+## System Architecture (系統架構)
+
+1. **Simulation Node (顯示介面 + 伺服器)**
+    - OpenCV 視窗顯示地圖、路徑、機器人位置
+    - 負責生成 robot 物件及其模擬運動
+    - 發布 `/task_list`、`/<robot>/pose`
+    - 接收 `/assign_goal` → 派發給對應 robot
+    - 可連接 Arduino 進行燈號與馬達控制
+
+2. **Robot Agent (分散式智能體)**
+    - 每啟動一個 robot，就會建立一個獨立 agent：
+        - 訂閱 `/task_list` → 計算到每個任務的成本
+        - 發布成本到 `/agent_reports`
+        - 自動選出：ID 最小者為Leader
+            - Leader 進行指派後發布 `/assign_goal`
+
+---
+
+## Directory Tree (專案目錄結構)
+```
+ros2_multi_robot_task_sim/src
+│
+├── multi_robot_sim/
+│   ├── PathPlanning/
+│   │   ├── planner_a_star.py
+│   │   ├── planner_rrt.py
+│   │   ├── planner_rrt_star.py
+│   │   ├── cubic_spline.py
+│   │   ├── planner.py
+│   │   └── utils.py
+│   │ 
+│   ├── PathTracking/
+│   │   ├── controller_pid_basic.py
+│   │   ├── controller_pid_bicycle.py
+│   │   ├── controller_pure_pursuit_bicycle.py
+│   │   ├── controller_pure_pursuit_basic.py
+│   │   ├── controller_stanley_bicycle.py
+│   │   ├── controller_lqr_basic.py
+│   │   ├── controller_lqr_bicycle.py
+│   │   ├── controller.py
+│   │   └── utils.py
+│   │
+│   ├── Simulation/
+│   │   ├── simulator_basic.py
+│   │   ├── simulator_differential_drive.py
+│   │   ├── simulator_bicycle.py
+│   │   ├── simulator_map_function.py
+│   │   ├── simulator_map.py
+│   │   ├── kinematic_basic.py
+│   │   ├── kinematic_differential_drive.py
+│   │   ├── kinematic_bicycle.py
+│   │   ├── kinematic.py
+│   │   ├── simulator_robot.py
+│   │   ├── sensor_lidar.py
+│   │   ├── simulator.py
+│   │   └── utils.py
+│   │
+│   ├── robot_agent.py
+│   ├── simulation_node.py
+│   │
+├── maps/
+│   ├── map1.png
+│   ├── map2.png
+│   └── map3.png
+│
+├── launch/
+│   ├── all_launch.py
+│   ├── sim_launch.py
+│   ├── robot1_launch.py
+│   ├── robot2_launch.py
+│   └── robot3_launch.py
+│
+├── package.xml
+│
+├── setup.cfg
+│
+├── setup.py
+```
+
+---
+
+## Configurable Parameters (可調整參數)
+
+以下示例來自 `robot1_launch.py`：
+
+```python
+parameters=[
+    {'map': map_file},
+    {'robot_name': 'robot_1'},
+    {'init_pose': [100.0, 200.0, 0.0]},
+    {'simulator_type': 'diff_drive'},
+    {'controller_type': 'pid'},
+    {'planner_type': 'a_star'}
+]
+```
+
+| 參數名稱         | 功能               | 可用選項                       |
+|------------------|--------------------|-------------------------------|
+| robot_name       | 機器人 ID          | 任意字串                      |
+| init_pose        | 初始位置 (x, y, yaw)| 浮點數陣列                    |
+| simulator_type   | 使用的動力學模型   | basic, diff_drive, bicycle    |
+| controller_type  | 路徑追蹤控制器     | pid, lqr, stanley, pure_pursuit|
+| planner_type     | 路徑規劃演算法     | a_star, rrt, rrt_star         |
+| map              | 使用地圖           | PNG 檔案路徑                  |
+
+---
 
 ## 安裝與執行
 
@@ -47,49 +164,45 @@ A decentralized multi-robot simulation for dynamic task assignment in ROS 2 (Hum
 **1. 建立與編譯**
 
 ```bash
-# 1. 進入您的 ROS 2 工作區 src 資料夾
-cd ~/ros2_ws/src/
+# 1. 切換到你想放置專案的資料夾
+cd 
 
-# 2. 將專案複製到此處
-# git clone [https://github.com/](https://github.com/)[your_username]/ros2_multi_robot_task_sim.git
+# 2. 下載專案原始碼
+git clone https://github.com/rick55654/ros2_multi_robot_task_sim.git
 
-# 3. 回到工作區根目錄
-cd ~/ros2_ws/
+# 3. 進入專案資料夾
+cd ros2_multi_robot_task_sim
 
-# 4. 編譯專案
+# 4. 編譯 multi_robot_sim 套件
 colcon build --packages-select multi_robot_sim
 
-# 5. Source 環境
+# 5. 匯入 ROS 2 環境變數
 source install/setup.bash
 ```
+> 註：下載後可直接進入 `ros2_multi_robot_task_sim` 資料夾編譯，不需額外搬移或調整結構。
+
 **2. 執行模擬**
 
-您需要開啟至少 3 個終端機。
+開啟至少 3 個終端機。
 
 ```bash
-# 終端機 1: 啟動模擬器 (世界/伺服器)
-source ~/ros2_ws/install/setup.bash
-ros2 run multi_robot_sim simulation_node
+# 終端機 1: 啟動Simulation Node 模擬器 (顯示介面)
+source ~/ros2_multi_robot_task_sim/install/setup.bash
+ros2 launch multi_robot_sim sim_launch.py
 ```
 ```bash
-
-# 終端機 2: 啟動機器人 1 (大腦)
-source ~/ros2_ws/install/setup.bash
+# 終端機 2: 啟動機器人 1
+source ~/ros2_multi_robot_task_sim/install/setup.bash
 ros2 launch multi_robot_sim robot1_launch.py
 ```
 ```bash
-
-# 終端機 3: 啟動機器人 2 (大腦)
-source ~/ros2_ws/install/setup.bash
+# 終端機 3: 啟動機器人 2
+source ~/ros2_multi_robot_task_sim/install/setup.bash
 ros2 launch multi_robot_sim robot2_launch.py
 ```
 **3. 使用方式**
 1. 啟動所有節點後，一個名為 "ROS 2 Multi-Robot Simulation" 的 OpenCV 視窗將會出現。
-
 2. 在視窗的白色可通行區域內點擊滑鼠左鍵。
-
 3. 每次點擊都會在 `/task_list `中新增一個任務。
-
-4. Leader 智能體將自動計算最佳分配，並派遣閒置的機器人前往執行。
-
-5. (可選) 連接 Arduino，LED 燈將顯示待處理任務的數量。
+4. 被選為的 Leader 將計算最佳分配，並派遣最合適的機器人前往執行。
+5. (可選) 連接 Arduino，LED 燈將顯示待處理任務的數量.
