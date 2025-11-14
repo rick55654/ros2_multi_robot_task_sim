@@ -155,7 +155,7 @@ parameters=[
 ## 已知問題 / Notes
 
 - 在樹梅派（Raspberry Pi）上執行時，模擬速度會明顯較慢，建議使用效能較佳的主機運行。
-- LQR 控制器目前尚未最佳化，執行多次任務後可能出現「發瘋亂轉」的不可控的情況，建議測試時選用其他控制器（如 PID、Stanley、Pure Pursuit），或自行調整 `controller_lqr_<model>.py` 內的 LQR 演算法與參數。
+- LQR 控制器目前尚未最佳化，執行多次任務後可能出現「發瘋亂轉」的不可控的情況，建議測試時選用其他控制器（如 PID、Stanley、Pure Pursuit），或自行調整 PathTracking/`controller_lqr_<model>.py` 內的 LQR 演算法與參數。
 
 ---
 
