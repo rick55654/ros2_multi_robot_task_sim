@@ -1,17 +1,18 @@
 import cv2
 import numpy as np
 import sys
+import time
 
 import multi_robot_sim.PathPlanning.utils as utils
 from multi_robot_sim.PathPlanning.planner import Planner
 
 class PlannerRRT(Planner):
-    def __init__(self, m, extend_len=40): #extend_len  節點 與 舊節點的最大距離
+    def __init__(self, m, extend_len=10): #extend_len  節點 與 舊節點的最大距離
         super().__init__(m)
         self.extend_len = extend_len
 
     def _random_node(self, goal, shape):
-        r = np.random.choice(2,1,p=[0.5,0.5]) # 0~1 隨機選1個數 各50%機率選到其中一個  說真的這個0.5 0.5 不打也可以
+        r = np.random.choice(2, 1, p=[0.9, 0.1]) # 0~1 隨機選1個數 各50%機率選到其中一個  說真的這個0.5 0.5 不打也可以
         if r==1:
             return (float(goal[0]), float(goal[1]))
         else:
@@ -52,7 +53,7 @@ class PlannerRRT(Planner):
         else:        
             return new_node, utils.distance(new_node, from_node) #返回 新節點 與到 它的長度
 
-    def planning(self, start, goal, extend_len=None, img=None):
+    def planning(self, start, goal, extend_len=None, img=None, timeout=2.0):
         if extend_len is None:
             extend_len = self.extend_len
         self.ntree = {}  #記錄節點
@@ -60,8 +61,12 @@ class PlannerRRT(Planner):
         self.cost = {} #記錄cost
         self.cost[start] = 0
         goal_node = None
-        for it in range(20000):
-            print("\r", it, len(self.ntree), end="")
+        start_time = time.time()
+        for it in range(5000):
+            if (time.time() - start_time) > timeout:
+                # print(f"[RRT] Timeout ({timeout}s) reached. Aborting.")
+                return []
+            #print("\r", it, len(self.ntree), end="")
             samp_node = self._random_node(goal, self.map.shape) #隨機採樣點
             near_node = self._nearest_node(samp_node)  #找到與 samp_node 最近的點
             new_node, cost = self._steer(near_node, samp_node, extend_len) #返回 新節點 與 到達它 的長度

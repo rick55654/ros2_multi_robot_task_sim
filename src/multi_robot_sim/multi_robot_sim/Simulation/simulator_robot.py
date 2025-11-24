@@ -1,25 +1,23 @@
 import numpy as np
+import cv2
 
 from multi_robot_sim.Simulation.utils import ControlState
 from multi_robot_sim.Simulation.simulator_map import SimulatorMap 
-from multi_robot_sim.Simulation.utils import ControlState
-from multi_robot_sim.Simulation.simulator_map import SimulatorMap
 from multi_robot_sim.Simulation.simulator_basic import SimulatorBasic
 from multi_robot_sim.Simulation.simulator_differential_drive import SimulatorDifferentialDrive
 from multi_robot_sim.Simulation.simulator_bicycle import SimulatorBicycle
-from multi_robot_sim.PathPlanning.cubic_spline import *
-from multi_robot_sim.PathPlanning.cubic_spline import *
 from multi_robot_sim.PathTracking.controller_pid_basic import ControllerPIDBasic
-from multi_robot_sim.PathTracking.controller_pure_pursuit_basic import ControllerPurePursuitBasic
-from multi_robot_sim.PathTracking.controller_lqr_basic import ControllerLQRBasic
 from multi_robot_sim.PathTracking.controller_pid_bicycle import ControllerPIDBicycle
+from multi_robot_sim.PathTracking.controller_pure_pursuit_basic import ControllerPurePursuitBasic
 from multi_robot_sim.PathTracking.controller_pure_pursuit_bicycle import ControllerPurePursuitBicycle
 from multi_robot_sim.PathTracking.controller_stanley_bicycle import ControllerStanleyBicycle
+from multi_robot_sim.PathTracking.controller_lqr_basic import ControllerLQRBasic
 from multi_robot_sim.PathTracking.controller_lqr_bicycle import ControllerLQRBicycle
-import cv2
+from multi_robot_sim.PathPlanning.cubic_spline import *
+
 
 class Robot:
-    def __init__(self, node, args, start_pose, robot_id, planner, m, m_cspace):
+    def __init__(self, node, args, start_pose, robot_id, planner, m, m_cspace, color=(0.0, 0.0, 1.0)):
         self.node = node 
         self.args = args
         self.start_pose = start_pose
@@ -34,6 +32,7 @@ class Robot:
         self.path = None
         self.set_controller_path = False
         self.collision_count = 0
+        self.color = color
         
         try:
             if self.args.simulator == "basic":
@@ -116,13 +115,13 @@ class Robot:
                 self.way_points = None
             else:
                 start_pos = valid_start_pos
-                self.get_logger().info(f"[{self.robot_id}] Using 'snapped' start pos {start_pos}.")
+                #self.get_logger().info(f"[{self.robot_id}] Using 'snapped' start pos {start_pos}.")
                 self.way_points = self.planner.planning(start_pos, goal_pos, 20)
         else:
             self.way_points = self.planner.planning(start_pos, goal_pos, 20)
             
         if self.way_points and len(self.way_points) > 1:
-            self.get_logger().info(f"[{self.robot_id}] New goal set: {goal_pos}")
+            #self.get_logger().info(f"[{self.robot_id}] New goal set: {goal_pos}")
             self.nav_pos = goal_pos
             self.path = np.array(cubic_spline_2d(self.way_points, interval=4))
             self.set_controller_path = True
@@ -130,7 +129,7 @@ class Robot:
             self.get_logger().warn(f"[{self.robot_id}] Path planning failed or path too short (from {start_pos} to {goal_pos}).")
 
     def stop_moving(self):
-        self.get_logger().info(f"[{self.robot_id}] Received STOP command. Clearing path.")
+        #self.get_logger().info(f"[{self.robot_id}] Received STOP command. Clearing path.")
         self.path = None
         self.nav_pos = None
         self.way_points = None
@@ -139,11 +138,11 @@ class Robot:
 
     def render_path_on_image(self, img):
         if self.nav_pos is not None and self.way_points is not None and self.path is not None:
-            cv2.circle(img, self.nav_pos, 5, (0.5, 0.5, 1.0), 3) 
+            cv2.circle(img, self.nav_pos, 5, self.color, 3) 
             for i in range(len(self.way_points)): 
-                cv2.circle(img, self._pos_int(self.way_points[i]), 3, (1.0, 0.4, 0.4), 1) 
+                cv2.circle(img, self._pos_int(self.way_points[i]), 3, self.color, 1)
             for i in range(len(self.path) - 1):
-                cv2.line(img, self._pos_int(self.path[i]), self._pos_int(self.path[i+1]), (1.0, 0.4, 0.4), 1)
+                cv2.line(img, self._pos_int(self.path[i]), self._pos_int(self.path[i+1]), self.color, 1)
         return img
 
     def update_step(self):
@@ -217,7 +216,7 @@ class Robot:
             if self.collision_count > 10:
                 self.collision_count = 0 
         
-        if completed_goal_pos:
-            self.get_logger().info(f"[{self.robot_id}] Body: Goal {completed_goal_pos} reached!")
+        #if completed_goal_pos:
+            #self.get_logger().info(f"[{self.robot_id}] Body: Goal {completed_goal_pos} reached!")
 
         return completed_goal_pos

@@ -125,6 +125,17 @@ class SimulationNode(Node):
             sim_type = parts[2]
             con_type = parts[3]
             plan_type = parts[4]
+            
+            robot_color = (0.0, 0.0, 1.0)
+            if robot_id == "robot_1":
+                robot_color = (0.0, 0.0, 1.0)
+            elif robot_id == "robot_2":
+                robot_color = (0.0, 0.8, 0.0)
+            elif robot_id == "robot_3":
+                robot_color = (1.0, 0.0, 0.0)
+            else:
+                robot_color = (0.0, 0.8, 0.8)
+                
             if robot_id in self.robot_map:
                 self.get_logger().warn(f"Robot '{robot_id}' already exists.")
                 return
@@ -146,7 +157,7 @@ class SimulationNode(Node):
                 self.get_logger().error(f"Failed to create planner '{plan_type}' for {robot_id}: {e}")
                 return
             
-            new_robot = Robot(self, robot_args, start_pose, robot_id, robot_planner, self.m, self.m_cspace)
+            new_robot = Robot(self, robot_args, start_pose, robot_id, robot_planner, self.m, self.m_cspace,color=robot_color)
             
             self.robots.append(new_robot)
             self.robot_map[robot_id] = new_robot
@@ -213,11 +224,11 @@ class SimulationNode(Node):
         
         num_tasks = len(self.pending_tasks)
         
-        self.get_logger().info(f"Publishing new task list ({num_tasks} tasks): {task_str}")
+        #self.get_logger().info(f"Publishing new task list ({num_tasks} tasks): {task_str}")
         self.pub_task_list.publish(msg)
 
         led_command = f"L={num_tasks}\n" 
-        self.get_logger().info(f"Updating Arduino LED count: {led_command.strip()}")
+        #self.get_logger().info(f"Updating Arduino LED count: {led_command.strip()}")
         self.send_serial_command(led_command)
 
     def render_pending_tasks(self, img):
@@ -232,11 +243,11 @@ class SimulationNode(Node):
             is_any_robot_active = any(robot.nav_pos is not None for robot in self.robots)
             
             if is_any_robot_active and self.motor_state == "OFF":
-                self.get_logger().info("Robot is active, starting motor.")
+                #self.get_logger().info("Robot is active, starting motor.")
                 self.send_serial_command("M1\n")
                 self.motor_state = "ON"
             elif not is_any_robot_active and self.motor_state == "ON":
-                self.get_logger().info("All robots idle, stopping motor.")
+                #self.get_logger().info("All robots idle, stopping motor.")
                 self.send_serial_command("M0\n")
                 self.motor_state = "OFF"
             
@@ -256,7 +267,7 @@ class SimulationNode(Node):
                     else:
                         self.get_logger().warn(f"Robot {robot.robot_id} finished {completed_task_pos}, but it was already removed.")
                 
-                base_img = robot.simulator.render_robot_on_image(base_img) 
+                base_img = robot.simulator.render_robot_on_image(base_img, color=robot.color) 
                 base_img = robot.render_path_on_image(base_img)
                 
                 pose_msg = Pose2D()

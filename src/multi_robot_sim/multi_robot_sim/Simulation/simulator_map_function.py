@@ -1,7 +1,6 @@
 import sys
 import numpy as np
 
-
 from multi_robot_sim.Simulation.utils import Bresenham, compute_car_box
 from multi_robot_sim.Simulation.sensor_lidar import LidarModel
 
@@ -42,7 +41,7 @@ def SimulatorMap(simulator_class):
 
         def render(self):
             img = np.repeat(self.m[...,np.newaxis],3,2)
-            img = self.simulator_class.render(self, img)
+            img = self.simulator_class.render(self, img, color=color)
             return img
 
     return SimulatorMapClass

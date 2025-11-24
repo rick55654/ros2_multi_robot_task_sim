@@ -1,17 +1,18 @@
 import cv2
 import numpy as np
 import sys
+import time
 
 import multi_robot_sim.PathPlanning.utils as utils
 from multi_robot_sim.PathPlanning.planner import Planner
 
 class PlannerRRTStar(Planner):
-    def __init__(self, m, extend_len=20):
+    def __init__(self, m, extend_len=10):
         super().__init__(m)
         self.extend_len = extend_len 
 
     def _random_node(self, goal, shape):
-        r = np.random.choice(2,1,p=[0.5,0.5])
+        r = np.random.choice(2, 1, p=[0.9, 0.1])
         if r==1:
             return (float(goal[0]), float(goal[1]))
         else:
@@ -51,7 +52,7 @@ class PlannerRRTStar(Planner):
             return new_node, utils.distance(new_node, from_node)
     
 
-    def planning(self, start, goal, extend_len=None, img=None):
+    def planning(self, start, goal, extend_len=None, img=None, timeout=2.0):
         if extend_len is None:
             extend_len = self.extend_len
         self.ntree = {} # key: 節點座標 value: 該節點的父節點
@@ -59,7 +60,11 @@ class PlannerRRTStar(Planner):
         self.cost = {}
         self.cost[start] = 0
         goal_node = None
-        for it in range(20000):
+        start_time = time.time() #
+        for it in range(5000):
+            if (time.time() - start_time) > timeout:
+                # print(f"[RRT*] Timeout ({timeout}s) reached. Aborting.")
+                return []
             #print("\r", it, len(self.ntree), end="")
             samp_node = self._random_node(goal, self.map.shape)
             near_node = self._nearest_node(samp_node)

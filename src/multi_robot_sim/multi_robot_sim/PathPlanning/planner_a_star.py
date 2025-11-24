@@ -1,5 +1,6 @@
 import cv2
 import sys
+import time
 
 import multi_robot_sim.PathPlanning.utils as utils
 from multi_robot_sim.PathPlanning.planner import Planner
@@ -18,7 +19,7 @@ class PlannerAStar(Planner):
         self.g = {} # Distance from node to goal
         self.goal_node = None
 
-    def planning(self, start=(100,200), goal=(375,520), inter=None, img=None):
+    def planning(self, start=(100,200), goal=(375,520), inter=None, img=None, timeout=2.0):
         if inter is None:
             inter = self.inter
         start = (int(start[0]), int(start[1]))
@@ -29,7 +30,12 @@ class PlannerAStar(Planner):
         self.parent[start] = None
         self.g[start] = 0
         self.h[start] = utils.distance(start, goal)
+        start_time = time.time()
+
         while(1):
+            if (time.time() - start_time) > timeout:
+                # print(f"[A*] Timeout ({timeout}s) reached. Aborting.")
+                return [] 
             if not self.queue:
                 break
             # 選擇 f = g + h 值最小的node作為當前node

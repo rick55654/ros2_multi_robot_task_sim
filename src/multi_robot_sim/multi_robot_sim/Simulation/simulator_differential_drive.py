@@ -2,7 +2,6 @@ import sys
 import numpy as np
 import cv2
 
-
 from multi_robot_sim.Simulation.simulator import Simulator
 import multi_robot_sim.Simulation.utils as utils
 from multi_robot_sim.Simulation.utils import State, ControlState
@@ -80,31 +79,35 @@ class SimulatorDifferentialDrive(Simulator):
     def __str__(self):
         return self.state.__str__() + " " + self.cstate.__str__()
 
-    def render(self, img=None):
+    def render(self, img=None, color=None):
         if img is None:
             img = np.ones((600,600,3))
+        
+        if color is None:
+            draw_color = (0, 0, 255)
+        else:
+            draw_color = (int(color[0]*255), int(color[1]*255), int(color[2]*255))
         ########## Draw History ##########
         rec_max = 1000
         start = 0 if len(self.record)<rec_max else len(self.record)-rec_max
         # Draw Trajectory
-        color = (0/255,97/255,255/255)
         for i in range(start,len(self.record)-1):
-            cv2.line(img,(int(self.record[i][0]),int(self.record[i][1])), (int(self.record[i+1][0]),int(self.record[i+1][1])), color, 1)
+            cv2.line(img,(int(self.record[i][0]),int(self.record[i][1])), (int(self.record[i+1][0]),int(self.record[i+1][1])), draw_color, 1)
 
         ########## Draw Car ##########
         # Car box
         pts1, pts2, pts3, pts4 = self.car_box
-        color = (0,0,0)
+        box_color = (0,0,0)
         size = 1
-        cv2.line(img, tuple(pts1.astype(int).tolist()), tuple(pts2.astype(int).tolist()), color, size)
-        cv2.line(img, tuple(pts1.astype(int).tolist()), tuple(pts3.astype(int).tolist()), color, size)
-        cv2.line(img, tuple(pts3.astype(int).tolist()), tuple(pts4.astype(int).tolist()), color, size)
-        cv2.line(img, tuple(pts2.astype(int).tolist()), tuple(pts4.astype(int).tolist()), color, size)
+        cv2.line(img, tuple(pts1.astype(int).tolist()), tuple(pts2.astype(int).tolist()), box_color, size)
+        cv2.line(img, tuple(pts1.astype(int).tolist()), tuple(pts3.astype(int).tolist()), box_color, size)
+        cv2.line(img, tuple(pts3.astype(int).tolist()), tuple(pts4.astype(int).tolist()), box_color, size)
+        cv2.line(img, tuple(pts2.astype(int).tolist()), tuple(pts4.astype(int).tolist()), box_color, size)
         # Car center & direction
         t1 = utils.rot_pos( 6, 0, -self.state.yaw) + np.array((self.state.x,self.state.y))
         t2 = utils.rot_pos( 0, 4, -self.state.yaw) + np.array((self.state.x,self.state.y))
         t3 = utils.rot_pos( 0, -4, -self.state.yaw) + np.array((self.state.x,self.state.y))
-        cv2.line(img, (int(self.state.x),int(self.state.y)), (int(t1[0]), int(t1[1])), (0,0,1), 2)
+        cv2.line(img, (int(self.state.x),int(self.state.y)), (int(t1[0]), int(t1[1])), draw_color, 2)
         cv2.line(img, (int(t2[0]), int(t2[1])), (int(t3[0]), int(t3[1])), (1,0,0), 2)
         
         ########## Draw Wheels ##########
