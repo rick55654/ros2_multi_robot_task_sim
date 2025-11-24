@@ -9,7 +9,6 @@ A decentralized multi-robot simulation for dynamic task assignment in ROS 2 (Hum
 ---
 
 ## Demo Preview (示範成果)
-
 **Demo Gif:**
 
 ![Demo Preview](docs/demo.gif)
@@ -18,6 +17,24 @@ A decentralized multi-robot simulation for dynamic task assignment in ROS 2 (Hum
 - 多台 robot_agent 自動競標並分配目標
 - 軌跡平滑、路徑規劃與控制器皆可切換
 - Arduino LED 顯示任務量、馬達隨機動作反映「是否有 robot 正在執行任務」
+  
+## Update Note (更新說明)
+以下三段示範影片為系統更新後的實際運行情況，與上方的 GIF 示範不同。
+
+新版系統雖然在任務分配觸發後的反應速度較慢，但整體運行更加穩定，能夠持續可靠地完成任務輪詢、規劃與分配流程。
+
+本次更新主要修正了 RRT 與 RRT* 在某些情況無法找到可行路徑，進而造成模擬流程停滯的問題。
+
+https://github.com/user-attachments/assets/44ea37a3-2b7f-4e5d-8cd3-1052bcfb7c34
+
+
+
+https://github.com/user-attachments/assets/410dab92-f033-4f89-ae0e-906813b09d00
+
+
+
+https://github.com/user-attachments/assets/0652ca32-2a1c-4333-ba80-27ac3aceed6e
+
 
 ---
 
