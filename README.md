@@ -16,10 +16,13 @@ A decentralized multi-robot simulation for dynamic task assignment in ROS 2 (Hum
 - OpenCV 介面可動態新增任務
 - 多台 robot_agent 自動競標並分配目標
 - 軌跡平滑、路徑規劃與控制器皆可切換
-- Arduino LED 顯示任務量、馬達隨機動作反映「是否有 robot 正在執行任務」
+- 按 r 鍵 可重置機器人到初始位置
+- Arduino LED 亮燈數 <- 現有任務量
+- Arduino 馬達轉動 <-「有 robot 正在執行任務」
   
 ## Update Note (更新說明)
-以下三段示範影片為系統更新後的實際運行情況，與上方的 GIF 示範不同。
+
+以下三段示範影片為系統更新後的實際運行情況，上方的 GIF 示範為前一版運行情況。
 
 新版系統雖然在任務分配觸發後的反應速度較慢，但整體運行更加穩定，能夠持續可靠地完成任務輪詢、規劃與分配流程。
 
